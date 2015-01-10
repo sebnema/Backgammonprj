@@ -1,4 +1,9 @@
 import socket
+import commands
+import  backgammon
+
+from threading import Thread
+
 s = socket.socket()
 host = socket.gethostname()
 #print(host)
@@ -6,12 +11,34 @@ port = 9898
 #tumple degistirelemez liste
 s.bind((host,port))
 
-# 5 tane conn que ya atip bekletebiliyor
+# 30 tane conn que ya atip bekletebiliyor
 s.listen(30)
+
+class ClientThread(Thread):
+    def __init__(self, clientSocket,clientAddr):
+        Thread.__init__(self)
+        self.clientSocket = clientSocket
+        self.clientAddr = clientAddr
+
+    def run(self):
+        while 1:
+            try:
+                # It will hang here, even if I do close on the socket
+                data = self.clientSocket.recv(2048)
+                print "Got data: ", data
+                response = commands.serverprotocolparser(self.clientSocket, data)
+                commands.serversend(self.clientSocket, commands.lastsentservercomand, response)
+            except Exception as err:
+                print(err.args)
+                break
+
+        self.clientSocket.close()
 
 while True:
     # baglanti kurulduktan sonra atanan connection degiskenleri iki tane donuyor
-    c,addr = s.accept()
-    print('Connection from', addr)
-    c.send('Thank you for connecting')
-    c.close()
+    clientSocket, clientaddr = s.accept()
+    print 'Got a new connection from: ', clientaddr
+
+    clientThread = ClientThread(clientSocket,clientaddr)
+    clientThread.start()
+
