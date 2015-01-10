@@ -15,7 +15,7 @@ else:
   username = raw_input("Please enter username: ")
   serverip = raw_input("Please enter server ip: ")
   serverport = raw_input("Please enter server port: ")
-
+z
 ip = socket.gethostname()
 port = 9898
 s.connect((ip,port))
