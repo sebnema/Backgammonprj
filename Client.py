@@ -3,6 +3,10 @@ import commands
 import backgammon
 from sys import version_info
 
+
+global lastsentclientcommand
+lastsentclientcommand=""
+
 s = socket.socket()
 
 #Screen 1: Connect to Server
@@ -15,18 +19,42 @@ else:
   username = raw_input("Please enter username: ")
   serverip = raw_input("Please enter server ip: ")
   serverport = raw_input("Please enter server port: ")
-z
-ip = socket.gethostname()
-port = 9898
-s.connect((ip,port))
 
-commands.clientsend(s, "PCCONN", '{"username": "' + username + '", "ip": "' + ip + '", "serverip": "'+ serverip +'", "serverport": "' + serverport + '"}')
+#TODO ip ve port sorunu
+ip = socket.gethostname()
+serverip  = ip
+port = 9898 #int(serverport)
+
+
 # end of Screen 1
 
+def parseInput(input):
+    cmd = input.split()
+    if (input.__contains__("PCREQPLAY")):
+        lastsentclientcommand = "PCREQPLAY"
+        #PCREQPLAY sebnema
+        username = cmd[1]
+        ret ='{"username": "' + username + '}'
+    return ret
+
+def connect(s,username,ip,serverip,serverport):
+    print("Conneting...")
+    s.connect((serverip ,port))
+    lastsentclientcommand = "PCCONN"
+    commands.clientsend(s, lastsentclientcommand, '{"username": "' + username + '", "ip": "' + ip + '", "serverip": "'+ serverip +'", "serverport": "' + serverport + '"}')
+
+
 while True:
+    input = raw_input("$ ")
+    if (input.lower() == "connect"):
+        connect(s,username,ip,serverip,serverport)
+    else:
+        ret = parseInput(input)
+        commands.clientsend(s, lastsentclientcommand, ret)
+
     v = s.recv(1024)
     if(v != ""):
-        response=commands.clientprotocolparser(s,commands.lastsentclientcommand, v)
+        response=commands.clientprotokolparser(lastsentclientcommand, v)
         print(response)
     else:
         s.close()

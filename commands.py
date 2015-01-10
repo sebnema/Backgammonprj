@@ -5,8 +5,7 @@ import Queue
 import json
 from pprint import pprint
 
-lastsentclientcommand = ""
-lastsentservercomand = ""
+global lastsentservercomand
 
 class Object:
     def to_JSON(self):
@@ -18,17 +17,15 @@ def fromjson(val):
     return data
 
 def clientsend(csocket, command, parameters):
-    lastsentclientcommand = command
     csocket.sendall(command + "|" + parameters)
 
-def serversend(ssocket, command, parameters):
-    lastsentclientcommand = command
-    ssocket.sendall(command + "|" + parameters)
+def serversend(ssocket, lastsentservercomand, message):
+    lastsentservercomand = message.split("|")[0]
+    ssocket.sendall(message)
 
-def clientprotokolparser(sentcommand, returnmessage):
-    print(returnmessage)
+def clientprotokolparser(sentcommand, data):
     #SRVOK|{"message": "Hi sebnema, You are connected to 11.11.11.11, 9898"}
-    msg = returnmessage.split("|")
+    msg = data.split("|")
     if(len(msg)>0):
         retcommand = msg[0]
     if(len(msg)>1):
@@ -46,7 +43,7 @@ def clientprotokolparser(sentcommand, returnmessage):
         if (retcommand == "SRVERR"):
             response = valobj['message']
     else:
-        response = "Something went wrong at server"
+        response = "Something went wrong on server"
 
     return response
 
@@ -76,35 +73,34 @@ def serverprotocolparser(csocket, data):
     return response
 
 def pcconn(csocket, username, ip, serverip, serverport):
-    print("PCCONN command sent")
+    print("PCCONN command received")
 
     manager = backgammon.GameManager()
     ifuserexists = manager.checkifUserExists(username)
     if (ifuserexists):
-        response = 'SRVERR|{"message": "Username "' + username + '" already exists. Choose another name"}'
+        response = 'SRVERR|{"message": "Username ' + username + ' already exists. Choose another name"}'
         return response
 
-    #csocket.connect((serverip,serverport))
     isadded = manager.addToWaitingList(username,ip)
     if(isadded):
-         response = 'SRVOK|{"message": "Hi "' + username+ ', You are connected to ' + serverip + ', ' + serverport+ '"}'
+         response = 'SRVOK|{"message": "Hi ' + username+ ', You are connected to ' + serverip + ', ' + serverport+ '"}'
     else:
         response = 'SRVERR|{"message": "Something went wrong..."}'
     return response
 
 
 def pcreqplay(csocket, username, ip):
-    print("PCREQPLAY command sent")
+    print("PCREQPLAY command received")
 
 
 def pcplay(username, ip, gameid):
-    print("PCPLAY command sent")
+    print("PCPLAY command received")
 
 def pcreqwatch(username, ip, gameid):
-    print("PCREQWATCH command sent")
+    print("PCREQWATCH command received")
 
 def pcwatch(username, ip, gameid):
-    print("PCWATCH command sent")
+    print("PCWATCH command received")
 
 def pcthrowdice(username, ip):
     print("PCTHROWDICE command sent")
@@ -113,30 +109,24 @@ def pcthrowdice(username, ip):
     dice = dice_1 +""+ dice_2
 
 def pcsendmove(username, ip, gameid, move):
-    print("PCSENDMOVE command sent")
+    print("PCSENDMOVE command received")
 
 
 def pcwrongmovealert(username, ip, gameid):
-    print("PCWRONGMOVEALERT command sent")
+    print("PCWRONGMOVEALERT command received")
 
 
 def pcbearoff(username, ip, gameid, move):
-    print("PCBEAROFF command sent")
+    print("PCBEAROFF command received")
 
 def pcbearoff(username, ip, gameid, move):
-    print("PCBEAROFF command sent")
+    print("PCBEAROFF command received")
 
 def pcend(username, ip):
-    print("PCEND command sent")
-
-def srvok():
-    print("SRVOK command sent")
-
-def srverr():
-    print("SRVERR  command sent")
+    print("PCEND command received")
 
 def srvhbeat(username, opponent):
-    print("SRVHBEAT  command sent")
+    print("SRVHBEAT  command received")
 
 def srvackdice(gameid,player,dice):
     print("SRVACKDICE command sent")

@@ -1,6 +1,7 @@
 import socket
 import commands
 import  backgammon
+import sys
 
 from threading import Thread
 
@@ -13,6 +14,9 @@ s.bind((host,port))
 
 # 30 tane conn que ya atip bekletebiliyor
 s.listen(30)
+
+global lastsentservercomand
+lastsentservercomand = ""
 
 class ClientThread(Thread):
     def __init__(self, clientSocket,clientAddr):
@@ -27,9 +31,9 @@ class ClientThread(Thread):
                 data = self.clientSocket.recv(2048)
                 print "Got data: ", data
                 response = commands.serverprotocolparser(self.clientSocket, data)
-                commands.serversend(self.clientSocket, commands.lastsentservercomand, response)
-            except Exception as err:
-                print(err.args)
+                commands.serversend(self.clientSocket, lastsentservercomand, response)
+            except Exception, err:
+                sys.stderr.write('ERROR: %s\n' % str(err))
                 break
 
         self.clientSocket.close()
