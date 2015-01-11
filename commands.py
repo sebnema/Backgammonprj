@@ -38,7 +38,7 @@ def clientprotokolparser(sentcommand, data):
 
     return response
 
-def processcommand(csocket, manager, gamesocket, data):
+def processcommand(csocket, manager, data):
     #get command and parameters(If exists)
     input = data.split("|")
     if(len(input)>0):
@@ -53,7 +53,7 @@ def processcommand(csocket, manager, gamesocket, data):
         ip = valobj['ip']
         serverip = valobj['serverip']
         serverport = valobj['serverport']
-        response = pcconn(csocket,username, ip, serverip, serverport)
+        response = pcconn(csocket, manager, username, ip, serverip, serverport)
     elif (command == "PCREQPLAY"):
         #parsing PCREQPLAY {"username": "Joe", "ip": "11.11.11.11"}
         username = valobj['username']
@@ -72,7 +72,7 @@ def pcconn(csocket, manager, username, ip, serverip, serverport):
         response = 'SRVERR|{"message": "Username ' + username + ' already exists. Choose another name"}'
         return response
     else:
-        isadded = manager.addToUsers(username,ip,-1)
+        isadded = manager.addToUsers(csocket,username,ip,-1)
 
     if(isadded):
          response = 'SRVOK|{"message": "Hi ' + username+ ', You are connected to ' + serverip + ', ' + serverport+ '"}'
@@ -82,17 +82,23 @@ def pcconn(csocket, manager, username, ip, serverip, serverport):
 
 def pcreqplay(csocket, manager, username):
     print("PCREQPLAY command received")
-    isadded = manager.addToWaitingList(username)
+    gameid = -1
     opponent = manager.dequeueOpponentFromWaitingList(username)
-    player = manager.player(username)
-    gameid = manager.createNewMatch()
+    if (opponent==""):
+        isadded = manager.addToWaitingList(username)
+        if (not isadded):
+            response = 'SRVERR|{"message": "Player could not added to waiting list"}'
+            return response
+    else:
+        player = manager.findUserByName(username)
+        gameid = manager.createNewMatch()
 
     if (gameid >0):
         if isinstance(player,user.User):
             player.setgameid(gameid)
-        response = 'SRVOK|{"message": "Successful", "'+opponent+'": "foouser", "gameid": '+str(gameidid)+' }'
+        response = 'SRVOK|{"message": "Successful", "'+opponent+'": "foouser", "gameid": '+str(gameid)+' }'
     else:
-        response = 'SRVERR|{"message": "No active user to play. Wait or return back for other options"}'
+        response = 'SRVERR|{"message": "No active user to play. Wait or make other options"}'
     return response
 
 

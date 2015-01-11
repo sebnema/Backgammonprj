@@ -40,12 +40,13 @@ class GameSocketThread(threading.Thread):
         return data.decode('utf-8', 'ignore')
 
     def interact(self, client):
-        this_user = self.manager.findUserBySocket(client)
+        #this_user = self.manager.findUserBySocket(client)
         data = self.recv_data(client, 2048)
         print "Got data: ", data
-        response = Commands.processcommand(this_user.socket, self.manager, data)
+        response = Commands.processcommand(client, self.manager, data) #this_user.socket
         self.lastsentservercomand = response.split("|")[0]
-        self.send_data(this_user.socket, response)
+        self.send_data(client, response) #this_user.socket
+
 
 
 
