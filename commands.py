@@ -30,7 +30,8 @@ def clientprotokolparser(sentcommand, data):
             response = valobj['message']
     elif (sentcommand == "PCREQPLAY"):
         if (retcommand == "SRVOK"):
-            response = '{"message": "'+valobj['message']+'", "opponent": "'+valobj['opponent']+'", "gameid": "'+valobj['gameid']+'"}'
+            #response = '{"message": "'+valobj['message']+'", "opponent": "'+valobj['opponent']+'", "gameid": "'+valobj['gameid']+'"}'
+            response = 'Your opponent is ' + valobj['opponent'] + '.You are ready to start playing.'
         if (retcommand == "SRVERR"):
             response = valobj['message']
     else:
@@ -58,6 +59,11 @@ def processcommand(csocket, manager, data):
         #parsing PCREQPLAY {"username": "Joe", "ip": "11.11.11.11"}
         username = valobj['username']
         response = pcreqplay(csocket, manager, username)
+    elif (command == "PCQPLAY"):
+        #parsing PCPLAY {"username": "Joe", "matchid": "saasdasd"}
+        username = valobj['username']
+        matchid = valobj['matchid']
+        response = pcplay(csocket, manager, username, matchid)
     else:
         response = "ERR"
     return response
@@ -75,55 +81,78 @@ def pcconn(csocket, manager, username, ip, serverip, serverport):
         isadded = manager.addToUsers(csocket,username,ip,-1)
 
     if(isadded):
-         response = 'SRVOK|{"message": "Hi ' + username+ ', You are connected to ' + serverip + ', ' + serverport+ '"}'
+        player = manager.findUserByName(username)
+        player.state = "Connected"
+        response = 'SRVOK|{"message": "Hi ' + username+ ', You are connected to ' + serverip + ', ' + serverport+ '. Make your choice. 1)I want to play: pcreqplay 2)I want to watch: pcreqwath"}'
     else:
         response = 'SRVERR|{"message": "Something went wrong..."}'
     return response
 
 def pcreqplay(csocket, manager, username):
     print("PCREQPLAY command received")
-    gameid = -1
-    opponent = manager.dequeueOpponentFromWaitingList(username)
-    if (opponent==""):
-        isadded = manager.addToWaitingList(username)
-        if (not isadded):
-            response = 'SRVERR|{"message": "Player could not added to waiting list"}'
-            return response
-    else:
-        player = manager.findUserByName(username)
-        gameid = manager.createNewMatch()
+    match, opponent = manager.getActiveMatchandOpponentOfPlayer(username)
 
-    if (gameid >0):
-        if isinstance(player,user.User):
-            player.setgameid(gameid)
-        response = 'SRVOK|{"message": "Successful", "'+opponent+'": "foouser", "gameid": '+str(gameid)+' }'
+    if(match):
+        response = 'SRVOK|{"message": "You are playing a match", "opponent": "'+str(opponent.username)+'", "matchid": "'+str(match.id)+'" }'
     else:
-        response = 'SRVERR|{"message": "No active user to play. Wait or make other options"}'
+        matchid = -1
+        #get player user object from all users list
+        player = manager.findUserByName(username)
+
+        #get opponent user object from queue
+        opponentusername = manager.getOpponentFromWaitingList()
+
+        # if opponent not exists, player added to waiting list
+        if (opponentusername==0):
+            if(player<>0):
+                #player added to waiting list
+                isadded = manager.addToWaitingList(username)
+                if (isadded):
+                    response = 'SRVERR|{"message": "No active user to play. You are added to waiting list. Wait or make another choice"}'
+                else:
+                    response = 'SRVERR|{"message": "Player could not add to waiting list"}'
+        else:
+            opponent = manager.findUserByName(opponentusername)
+            #if opponent exists a new match created for player and the opponent
+            matchid = manager.createNewMatch(player,opponent)
+
+            #after new match created, set activegameid of each player and oppponent user data
+            if (matchid >0):
+                if isinstance(player,user.User):
+                    player.activematchid = matchid
+                    player.state = "Waiting"
+                if isinstance(opponent,user.User):
+                    opponent.activematchid = matchid
+                    opponent.state = "Waiting"
+                response = 'SRVOK|{"message": "Successful", "opponent": "'+str(opponentusername)+'", "gameid": "'+str(matchid)+'" }'
     return response
 
-
-def pcplay(username, ip, gameid):
+def pcplay(manager,username, matchid):
     print("PCPLAY command received")
+    gameid, board= manager.getInitialGameBoard(matchid)
+    if(gameid>0):
+        response = board
+    return response
+
+def pcthrowdice(manager, username, gameid):
+    print("PCTHROWDICE command sent")
+    dice_1 = random.randrange(1,6)
+    dice_2 = random.randrange(1,6)
+    dice = dice_1 +""+ dice_2
+    response = response = 'SRVOK|{"message": "Successful", "dice": "'+str(dice)+'", "gameid": "'+str(gameid)+'" }'
+
+def pcsendmove(username, ip, gameid, move):
+    print("PCSENDMOVE command received")
+
+def pcwrongmovealert(username, ip, gameid):
+    print("PCWRONGMOVEALERT command received")
+
 
 def pcreqwatch(username, ip, gameid):
     print("PCREQWATCH command received")
 
 def pcwatch(username, ip, gameid):
     print("PCWATCH command received")
-
-def pcthrowdice(username, ip):
-    print("PCTHROWDICE command sent")
-    dice_1 = random.randrange(1,6)
-    dice_2 = random.randrange(1,6)
-    dice = dice_1 +""+ dice_2
-
-def pcsendmove(username, ip, gameid, move):
-    print("PCSENDMOVE command received")
-
-
-def pcwrongmovealert(username, ip, gameid):
-    print("PCWRONGMOVEALERT command received")
-
 
 def pcbearoff(username, ip, gameid, move):
     print("PCBEAROFF command received")

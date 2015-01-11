@@ -18,7 +18,7 @@ class GameClientSocket():
             #PCREQPLAY sebnema
             ret ='{"username": "' + self.username + '"}'
         else:
-            ret="Invalid input"
+            ret = "Invalid input"
         return ret
 
     def __init__(self, username, ip, address, port, client):

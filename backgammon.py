@@ -3,14 +3,15 @@ import binascii
 import copy
 import itertools
 import Queue
-import time
+import uuid
 
 class Match(object):
     "A backgammon match"
     def __init__(self,player1,player2):
-        self._id = time.clock()
-        self._playername = [player1, player2]
-        self._games = []
+        self.id = uuid.uuid4()
+        self.state = "Started"
+        self.players = [player1, player2]
+        self.games = []
     def report(self):
         "Generate lines describing the match"
         yield 'Match to %d' % self.length
@@ -18,28 +19,22 @@ class Match(object):
             yield ''
             for line in g.report():
                 yield line
-    def player(self, i):
-        "The name of one of the players"
-        return self._playername[i]
-    @property
-    def id(self):
-        return self._id
     @property
     def games(self):
-        return list(self._games)
+        return list(self.games)
     def __iter__(self):
-        for g in self._games:
+        for g in self.games:
             yield g
     def addGame(self,game):
         self.games.append(game)
 
 class Game(object):
     "A single game of backgammon."
-    def __init__(self, moves, score=(0, 0), players=None, game_number=0):
+    def __init__(self, moves, score=(0, 0), players=None):
         self.score = score
         self._moves = list(moves)
         self.players = players or ('Player0', 'Player1')
-        self.game_number = game_number
+        self.game_number = uuid.uuid4()
 
     def replay(self):
         "Generate pre-state, move and post-state for each move in the game."
@@ -99,6 +94,7 @@ class GameMove(object):
     def action(self):
         "A short version of the type (eg 'roll')"
         return type(self).__name__.rpartition('GameMove')[2].lower()
+
 
 class GameMoveRoll(GameMove):
     "A player rolls the dice."
@@ -192,7 +188,7 @@ class Board(tuple):
         for b in bits(code):
             player, pt = i // 25, i % 25
             if b:
-                # Bit found: add a man to the current point.
+                # Bit found: add a stone to the current point.
                 points[24 - pt if player else pt + 1] += (1, -1)[player]
             else:
                 # No bit found: go to the next point.
@@ -206,8 +202,8 @@ class Board(tuple):
         for (p, n) in args:
             if p < 0:
                 p = 25 + p
-            assert p in xrange(0, 26)
-            assert points[p] == 0
+            #assert p in xrange(0, 26)
+            #assert points[p] == 0
             points[p] = n
         return cls(points)
     @property
@@ -230,3 +226,5 @@ def all_rolls():
 
 initialPosition = Board.from_points(
     (24, 2), (13, 5), (8, 3), (6, 5), (-24, -2), (-13, -5), (-8, -3), (-6, -5))
+
+

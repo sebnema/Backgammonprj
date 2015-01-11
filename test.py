@@ -15,6 +15,8 @@ if __name__ == "__main__":
     user2 = User("serbs","sss")
 
     my_queue = Queue.Queue(maxsize=0)
+    print len(my_queue.queue)
+
     my_queue.put(user1)
     my_queue.put(user2)
     my_queue.put("1")
