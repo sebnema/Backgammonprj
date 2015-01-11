@@ -5,7 +5,7 @@ from sys import version_info
 
 
 global lastsentclientcommand
-lastsentclientcommand=""
+lastsentclientcommand="sebnemclient"
 
 s = socket.socket()
 
@@ -24,22 +24,23 @@ else:
 ip = socket.gethostname()
 serverip  = ip
 port = 9898 #int(serverport)
-
+serverport = port
 
 # end of Screen 1
 
 def parseInput(input):
     cmd = input.split()
-    if (input.__contains__("PCREQPLAY")):
+    if (input.lower().__contains__("pcreqplay")):
         lastsentclientcommand = "PCREQPLAY"
         #PCREQPLAY sebnema
-        username = cmd[1]
+        #username = cmd[1]
         ret ='{"username": "' + username + '}'
     return ret
 
 def connect(s,username,ip,serverip,serverport):
-    print("Conneting...")
-    s.connect((serverip ,port))
+    print("Connecting...")
+    s.connect((serverip ,serverport))
+    username="sebnema"
     lastsentclientcommand = "PCCONN"
     commands.clientsend(s, lastsentclientcommand, '{"username": "' + username + '", "ip": "' + ip + '", "serverip": "'+ serverip +'", "serverport": "' + serverport + '"}')
 
