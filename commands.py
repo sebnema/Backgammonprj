@@ -34,6 +34,11 @@ def clientprotokolparser(sentcommand, data):
             response = 'Your opponent is ' + valobj['opponent'] + '.You are ready to start playing.'
         if (retcommand == "SRVERR"):
             response = valobj['message']
+    elif (sentcommand == "PCPLAY"):
+        if (retcommand == "SRVOK"):
+            response = valobj['board']
+        if (retcommand == "SRVERR"):
+            response = valobj['message']
     else:
         response = "Something went wrong on server"
 
@@ -131,7 +136,7 @@ def pcplay(manager,username, matchid):
     print("PCPLAY command received")
     gameid, board= manager.getInitialGameBoard(matchid)
     if(gameid>0):
-        response = board
+        response = 'SRVOK|{"board": "'+ board+'"}'
     return response
 
 def pcthrowdice(manager, username, gameid):
