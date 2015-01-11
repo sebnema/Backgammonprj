@@ -3,72 +3,136 @@ import binascii
 import copy
 import itertools
 import Queue
+import time
 
-
-class GameManager(object):
-    "A backgammon gamemanager"
-    def __init__(self):
-        self._players = []
+class Match(object):
+    "A backgammon match"
+    def __init__(self,player1,player2):
+        self._id = time.clock()
+        self._playername = [player1, player2]
         self._games = []
-        self._waitingList = Queue.Queue()
-
+    def report(self):
+        "Generate lines describing the match"
+        yield 'Match to %d' % self.length
+        for g in self:
+            yield ''
+            for line in g.report():
+                yield line
+    def player(self, i):
+        "The name of one of the players"
+        return self._playername[i]
+    @property
+    def id(self):
+        return self._id
     @property
     def games(self):
-        return list(self._games)
-    def activegames(self):
-        # TODO filter by game state
         return list(self._games)
     def __iter__(self):
         for g in self._games:
             yield g
+    def addGame(self,game):
+        self.games.append(game)
+
+class Game(object):
+    "A single game of backgammon."
+    def __init__(self, moves, score=(0, 0), players=None, game_number=0):
+        self.score = score
+        self._moves = list(moves)
+        self.players = players or ('Player0', 'Player1')
+        self.game_number = game_number
+
+    def replay(self):
+        "Generate pre-state, move and post-state for each move in the game."
+        game_state = GameState()
+        for move in self:
+            pre_state = copy.copy(game_state)
+            move.apply(game_state)
+            yield pre_state, move, game_state
+
+    def report(self):
+        "Return a log of all moves in the game"
+        def comma_and(g):
+            "Join strings together with ', ' but use 'and' for the last one."
+            g = list(g)
+            if len(g) == 1: return g[0]
+            return ', '.join(g[:-1]) + ' and ' + g[-1]
+
+        for p, moves in itertools.groupby(self, lambda x:x.player):
+            yield 'Player %d %s.' % (p, comma_and(map(str, moves)))
+
     @property
-    def waitinglist(self):
-        return self._waitingList
+    def result(self):
+        for m in self._moves:
+            if isinstance(m, GameMoveWin):
+                return m.player, m.points
+        return None
+
+    def __iter__(self):
+        for m in self._moves:
+            yield m
+
+
+class GameState(object):
+    "The state of a game being played."
+    def __init__(self):
+        self.board = initialPosition
+        self.dice = None
+    _keys = ['board', 'dice']
     @property
-    def players(self):
-        return list(self._players)
+    def kwargs(self):
+        return dict((k, getattr(self, k)) for k in self._keys)
 
-    def player(self, i):
-        "The activeuser object , one of the players"
-        return self._players[i]
+class GameMove(object):
+    "Base class for the things a player can do in a game."
+    @property
+    def report(self):
+        return 'Player %d %s.' % (self.player, self)
+    @property
+    def _report(self):
+        return str(self)
+    def __str__(self):
+        return 'Erroneous move type %s' % type(self)
+    def apply(self, game_state):
+        game_state.dice = None
+        #game_state.offer = None
+    @property
+    def action(self):
+        "A short version of the type (eg 'roll')"
+        return type(self).__name__.rpartition('GameMove')[2].lower()
 
-    def checkifUserExists(self, username):
-        exists = 0
-        for g in self._players:
-            if (username == g.username):
-                exists = 1
-                break
-        for g in self._waitingList.queue:
-            if (username == g.username):
-                exists = 1
-                break
-        return exists
-
-    def addToPlayers(self, username, ip, gameid):
-        user = User(username,ip, gameid)
-        list(self._players).append(user)
-    def addToWaitingList(self, username, ip):
-         try:
-            user = User(username, ip, "")
-            self.waitinglist.put(user)
-            useradded=1
-         except Exception as err:
-            print(err.args)
-            useradded=0
-         return useradded
-
-class User():
-    def __init__(self, username, ip, gameid):
-        self.username = username
-        self.ip = ip
-        self.gameid=gameid
+class GameMoveRoll(GameMove):
+    "A player rolls the dice."
+    def __init__(self, player, d0, d1):
+        self.player = player
+        self.dice = d0, d1
+    def __str__(self):
+        return 'rolls %d%d' % self.dice
+    def apply(self, game_state):
+        game_state.dice = self.dice
 
 
-def all_rolls():
-    "Generate all rolls, larger first"
-    for d0 in xrange(1, 7):
-        for d1 in xrange(1, d0 + 1):
-            yield (d0, d1)
+class GameMoveMove(GameMove):
+    "A player moves some stones."
+    def __init__(self, player, move):
+        self.player = player
+        self.move = move
+    def __str__(self):
+        if self.move: return 'moves %s' % self.move
+        else: return 'cannot move'
+    def apply(self, game_state):
+        game_state.dice = None
+        game_state.board = self.move.board_after
+        if self.player:
+            game_state.board = game_state.board.reverse()
+
+class GameMoveWin(GameMove):
+    "A player wins the game."
+    def __init__(self, player, points):
+        self.player = player
+        self.points = points
+    def __str__(self):
+        return 'wins %d point%s' % (self.points, 's' * (self.points != 1))
+
 
 class Board(tuple):
     @property
@@ -158,129 +222,11 @@ class Board(tuple):
     def __str__(self):
         return graphics.toString_ascii(self, False)
 
+def all_rolls():
+    "Generate all rolls, larger first"
+    for d0 in xrange(1, 7):
+        for d1 in xrange(1, d0 + 1):
+            yield (d0, d1)
 
 initialPosition = Board.from_points(
     (24, 2), (13, 5), (8, 3), (6, 5), (-24, -2), (-13, -5), (-8, -3), (-6, -5))
-
-
-class GameState(object):
-    "The state of a game being played."
-    def __init__(self):
-        self.board = initialPosition
-        self.dice = None
-    _keys = ['board', 'dice']
-    @property
-    def kwargs(self):
-        return dict((k, getattr(self, k)) for k in self._keys)
-
-class GameMove(object):
-    "Base class for the things a player can do in a game."
-    @property
-    def report(self):
-        return 'Player %d %s.' % (self.player, self)
-    @property
-    def _report(self):
-        return str(self)
-    def __str__(self):
-        return 'Erroneous move type %s' % type(self)
-    def apply(self, game_state):
-        game_state.dice = None
-        #game_state.offer = None
-    @property
-    def action(self):
-        "A short version of the type (eg 'roll')"
-        return type(self).__name__.rpartition('GameMove')[2].lower()
-
-class GameMoveRoll(GameMove):
-    "A player rolls the dice."
-    def __init__(self, player, d0, d1):
-        self.player = player
-        self.dice = d0, d1
-    def __str__(self):
-        return 'rolls %d%d' % self.dice
-    def apply(self, game_state):
-        game_state.dice = self.dice
-
-
-class GameMoveMove(GameMove):
-    "A player moves some men."
-    def __init__(self, player, move):
-        self.player = player
-        self.move = move
-    def __str__(self):
-        if self.move: return 'moves %s' % self.move
-        else: return 'cannot move'
-    def apply(self, game_state):
-        game_state.dice = None
-        #game_state.offer = None
-        game_state.board = self.move.board_after
-        if self.player:
-            game_state.board = game_state.board.reverse()
-
-class GameMoveWin(GameMove):
-    "A player wins the game."
-    def __init__(self, player, points):
-        self.player = player
-        self.points = points
-    def __str__(self):
-        return 'wins %d point%s' % (self.points, 's' * (self.points != 1))
-
-class Match(object):
-    "A backgammon match"
-    def __init__(self):
-        self._playername = ['', '']
-        self._games = []
-    def report(self):
-        "Generate lines describing the match"
-        yield 'Match to %d' % self.length
-        for g in self:
-            yield ''
-            for line in g.report():
-                yield line
-    def player(self, i):
-        "The name of one of the players"
-        return self._playername[i]
-    @property
-    def games(self):
-        return list(self._games)
-    def __iter__(self):
-        for g in self._games:
-            yield g
-
-class Game(object):
-    "A single game of backgammon."
-    def __init__(self, moves, score=(0, 0), players=None, game_number=0):
-        self.score = score
-        self._moves = list(moves)
-        self.players = players or ('Player0', 'Player1')
-        self.game_number = game_number
-
-    def replay(self):
-        "Generate pre-state, move and post-state for each move in the game."
-        game_state = GameState()
-        for move in self:
-            pre_state = copy.copy(game_state)
-            move.apply(game_state)
-            yield pre_state, move, game_state
-
-    def report(self):
-        "Return a log of all moves in the game"
-        def comma_and(g):
-            "Join strings together with ', ' but use 'and' for the last one."
-            g = list(g)
-            if len(g) == 1: return g[0]
-            return ', '.join(g[:-1]) + ' and ' + g[-1]
-
-        for p, moves in itertools.groupby(self, lambda x:x.player):
-            yield 'Player %d %s.' % (p, comma_and(map(str, moves)))
-
-    @property
-    def result(self):
-        for m in self._moves:
-            if isinstance(m, GameMoveWin):
-                return m.player, m.points
-        return None
-
-    def __iter__(self):
-        for m in self._moves:
-            yield m

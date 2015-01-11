@@ -1,11 +1,9 @@
 import time
 import random
-import backgammon
 import Queue
 import json
+import user
 from pprint import pprint
-
-global lastsentservercomand
 
 class Object:
     def to_JSON(self):
@@ -15,13 +13,6 @@ def fromjson(val):
     #E.g. val is {"username": "Joe", "ip": "11.11.11.11", "serverip": "10.24.56.78", "serverport": "9898"}
     data = json.loads(val)
     return data
-
-def clientsend(csocket, command, parameters):
-    csocket.sendall(command + "|" + parameters)
-
-def serversend(ssocket, lastsentservercomand, message):
-    lastsentservercomand = message.split("|")[0]
-    ssocket.sendall(message)
 
 def clientprotokolparser(sentcommand, data):
     #SRVOK|{"message": "Hi sebnema, You are connected to 11.11.11.11, 9898"}
@@ -39,7 +30,7 @@ def clientprotokolparser(sentcommand, data):
             response = valobj['message']
     elif (sentcommand == "PCREQPLAY"):
         if (retcommand == "SRVOK"):
-           response = valobj['message']
+            response = '{"message": "'+valobj['message']+'", "opponent": "'+valobj['opponent']+'", "gameid": "'+valobj['gameid']+'"}'
         if (retcommand == "SRVERR"):
             response = valobj['message']
     else:
@@ -47,7 +38,7 @@ def clientprotokolparser(sentcommand, data):
 
     return response
 
-def serverprotocolparser(csocket, data):
+def processcommand(csocket, manager, gamesocket, data):
     #get command and parameters(If exists)
     input = data.split("|")
     if(len(input)>0):
@@ -66,31 +57,43 @@ def serverprotocolparser(csocket, data):
     elif (command == "PCREQPLAY"):
         #parsing PCREQPLAY {"username": "Joe", "ip": "11.11.11.11"}
         username = valobj['username']
-        ip = valobj['ip']
-        response = pcreqplay(csocket,username, ip)
+        response = pcreqplay(csocket, manager, username)
     else:
         response = "ERR"
     return response
 
-def pcconn(csocket, username, ip, serverip, serverport):
+
+
+def pcconn(csocket, manager, username, ip, serverip, serverport):
     print("PCCONN command received")
 
-    manager = backgammon.GameManager()
     ifuserexists = manager.checkifUserExists(username)
     if (ifuserexists):
         response = 'SRVERR|{"message": "Username ' + username + ' already exists. Choose another name"}'
         return response
+    else:
+        isadded = manager.addToUsers(username,ip,-1)
 
-    isadded = manager.addToWaitingList(username,ip)
     if(isadded):
          response = 'SRVOK|{"message": "Hi ' + username+ ', You are connected to ' + serverip + ', ' + serverport+ '"}'
     else:
         response = 'SRVERR|{"message": "Something went wrong..."}'
     return response
 
-
-def pcreqplay(csocket, username, ip):
+def pcreqplay(csocket, manager, username):
     print("PCREQPLAY command received")
+    isadded = manager.addToWaitingList(username)
+    opponent = manager.dequeueOpponentFromWaitingList(username)
+    player = manager.player(username)
+    gameid = manager.createNewMatch()
+
+    if (gameid >0):
+        if isinstance(player,user.User):
+            player.setgameid(gameid)
+        response = 'SRVOK|{"message": "Successful", "'+opponent+'": "foouser", "gameid": '+str(gameidid)+' }'
+    else:
+        response = 'SRVERR|{"message": "No active user to play. Wait or return back for other options"}'
+    return response
 
 
 def pcplay(username, ip, gameid):
