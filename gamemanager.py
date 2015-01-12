@@ -58,7 +58,7 @@ class GameManager(object):
 
     def getMatchById(self, id):
         for g in self.matches:
-            if (id == g.id):
+            if (id == str(g.id)):
                 return g
                 break
         return 0
@@ -77,34 +77,37 @@ class GameManager(object):
         match.games.append(game)
         match.state = "Playing"
         return game
+
     def move(self,pfrom,pto):
         board = backgammon.Board.from_points((pfrom, pto))
         return board
 
-    def getInitialGameBoard(self,username,matchid):
+    def getInitialGameBoard(self,matchid):
         match = self.getMatchById(matchid)
-        game = self.createNewGame(match)
-        board = backgammon.initialPosition
-        return game.game_number,board
+        if(match>0):
+            game = self.createNewGame(match)
+            board = backgammon.initialPosition
+            return game.game_number,board
+        return 0,0
 
     def getActiveMatches(self):
         agames = []
         for m in self.matches:
             if isinstance(m,backgammon.Match):
-                if (m.state == "Playing"):
+                if (m.state == "Playing" or m.state == "Starting"):
                     agames.append(m)
         return agames
 
-    def getActiveMatchandOpponentOfPlayer(self, username):
+    def getMatchandOpponentOfPlayer(self, username):
         amatches = self.getActiveMatches()
-        for m in self.amatches:
+        for m in amatches:
             if isinstance(m,backgammon.Match):
                 player1 = m.players[0]
                 player2 = m.players[1]
                 if isinstance(player1,user.User):
                     if (player1.username == username):
-                        return m,player1
+                        return m,player2
                 if isinstance(player2,user.User):
                     if (player2.username == username):
-                        return m,player2
-        return 0
+                        return m,player1
+        return 0,0

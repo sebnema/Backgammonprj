@@ -11,33 +11,36 @@ class Object:
 
 def fromjson(val):
     #E.g. val is {"username": "Joe", "ip": "11.11.11.11", "serverip": "10.24.56.78", "serverport": "9898"}
+    val=str(val).replace("\n","Char103")
     data = json.loads(val)
+    #for d in data:
+    #    str(d).replace("Char103","\n")
     return data
 
 def clientprotokolparser(sentcommand, data):
     #SRVOK|{"message": "Hi sebnema, You are connected to 11.11.11.11, 9898"}
-    msg = data.split("|")
+    msg = data.split("||")
     if(len(msg)>0):
         retcommand = msg[0]
     if(len(msg)>1):
         parameters = msg[1]
         valobj = fromjson(parameters)
-
+    response = ""
     if (sentcommand == "PCCONN"):
         if (retcommand == "SRVOK"):
             response = valobj['message']
-        if (retcommand == "SRVERR"):
+        elif (retcommand == "SRVERR"):
             response = valobj['message']
     elif (sentcommand == "PCREQPLAY"):
         if (retcommand == "SRVOK"):
-            #response = '{"message": "'+valobj['message']+'", "opponent": "'+valobj['opponent']+'", "gameid": "'+valobj['gameid']+'"}'
-            response = 'Your opponent is ' + valobj['opponent'] + '.You are ready to start playing.'
-        if (retcommand == "SRVERR"):
+            #response = '{"message": "'+valobj['message']+'", "opponent": "'+valobj['opponent']+'", "matchid": "'+valobj['matchid']+'"}'
+            response = 'Your opponent is ' + valobj['opponent'] + '.You are ready to start playing. pcplay ' + str(valobj['matchid']) + ''
+        elif (retcommand == "SRVERR"):
             response = valobj['message']
     elif (sentcommand == "PCPLAY"):
         if (retcommand == "SRVOK"):
             response = valobj['board']
-        if (retcommand == "SRVERR"):
+        elif (retcommand == "SRVERR"):
             response = valobj['message']
     else:
         response = "Something went wrong on server"
@@ -64,7 +67,7 @@ def processcommand(csocket, manager, data):
         #parsing PCREQPLAY {"username": "Joe", "ip": "11.11.11.11"}
         username = valobj['username']
         response = pcreqplay(csocket, manager, username)
-    elif (command == "PCQPLAY"):
+    elif (command == "PCPLAY"):
         #parsing PCPLAY {"username": "Joe", "matchid": "saasdasd"}
         username = valobj['username']
         matchid = valobj['matchid']
@@ -80,7 +83,7 @@ def pcconn(csocket, manager, username, ip, serverip, serverport):
 
     ifuserexists = manager.checkifUserExists(username)
     if (ifuserexists):
-        response = 'SRVERR|{"message": "Username ' + username + ' already exists. Choose another name"}'
+        response = 'SRVERR||{"message": "Username ' + username + ' already exists. Choose another name"}'
         return response
     else:
         isadded = manager.addToUsers(csocket,username,ip,-1)
@@ -88,17 +91,17 @@ def pcconn(csocket, manager, username, ip, serverip, serverport):
     if(isadded):
         player = manager.findUserByName(username)
         player.state = "Connected"
-        response = 'SRVOK|{"message": "Hi ' + username+ ', You are connected to ' + serverip + ', ' + serverport+ '. Make your choice. 1)I want to play: pcreqplay 2)I want to watch: pcreqwath"}'
+        response = 'SRVOK||{"message": "Hi ' + username+ ', You are connected to ' + serverip + ', ' + serverport+ '. Make your choice. 1)I want to play: pcreqplay 2)I want to watch: pcreqwatch"}'
     else:
-        response = 'SRVERR|{"message": "Something went wrong..."}'
+        response = 'SRVERR||{"message": "Something went wrong..."}'
     return response
 
 def pcreqplay(csocket, manager, username):
     print("PCREQPLAY command received")
-    match, opponent = manager.getActiveMatchandOpponentOfPlayer(username)
+    match, opponent = manager.getMatchandOpponentOfPlayer(username)
 
-    if(match):
-        response = 'SRVOK|{"message": "You are playing a match", "opponent": "'+str(opponent.username)+'", "matchid": "'+str(match.id)+'" }'
+    if(match<>0):
+        response = 'SRVOK||{"message": "You are playing a match", "opponent": "'+str(opponent.username)+'", "matchid": "'+str(match.id)+'" }'
     else:
         matchid = -1
         #get player user object from all users list
@@ -113,9 +116,9 @@ def pcreqplay(csocket, manager, username):
                 #player added to waiting list
                 isadded = manager.addToWaitingList(username)
                 if (isadded):
-                    response = 'SRVERR|{"message": "No active user to play. You are added to waiting list. Wait or make another choice"}'
+                    response = 'SRVERR||{"message": "No active user to play. You are added to waiting list. Wait or make another choice"}'
                 else:
-                    response = 'SRVERR|{"message": "Player could not add to waiting list"}'
+                    response = 'SRVERR||{"message": "Player could not add to waiting list"}'
         else:
             opponent = manager.findUserByName(opponentusername)
             #if opponent exists a new match created for player and the opponent
@@ -129,14 +132,14 @@ def pcreqplay(csocket, manager, username):
                 if isinstance(opponent,user.User):
                     opponent.activematchid = matchid
                     opponent.state = "Waiting"
-                response = 'SRVOK|{"message": "Successful", "opponent": "'+str(opponentusername)+'", "gameid": "'+str(matchid)+'" }'
+                response = 'SRVOK||{"message": "Successful", "opponent": "'+str(opponentusername)+'", "matchid": "'+str(matchid)+'" }'
     return response
 
-def pcplay(manager,username, matchid):
+def pcplay(csocket,manager,username, matchid):
     print("PCPLAY command received")
     gameid, board= manager.getInitialGameBoard(matchid)
     if(gameid>0):
-        response = 'SRVOK|{"board": "'+ board+'"}'
+        response = 'SRVOK||{"gameid":"'+str(gameid)+'", "board": "'+ str(board)+'"}'
     return response
 
 def pcthrowdice(manager, username, gameid):
@@ -144,7 +147,7 @@ def pcthrowdice(manager, username, gameid):
     dice_1 = random.randrange(1,6)
     dice_2 = random.randrange(1,6)
     dice = dice_1 +""+ dice_2
-    response = response = 'SRVOK|{"message": "Successful", "dice": "'+str(dice)+'", "gameid": "'+str(gameid)+'" }'
+    response = response = 'SRVOK||{"message": "Successful", "dice": "'+str(dice)+'", "gameid": "'+str(gameid)+'" }'
 
 def pcsendmove(username, ip, gameid, move):
     print("PCSENDMOVE command received")

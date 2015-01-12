@@ -17,6 +17,11 @@ class GameClientSocket():
             self.lastsentclientcommand = "PCREQPLAY"
             #PCREQPLAY sebnema
             ret ='{"username": "' + self.username + '"}'
+        elif (input.lower().__contains__("pcplay")):
+            self.lastsentclientcommand = "PCPLAY"
+            #PCPLAY 12123123234
+            matchid = cmd[1]
+            ret ='{"username": "' + self.username + '", "matchid": "'+ matchid +'"}'
         else:
             ret = "Invalid input"
         return ret
@@ -48,6 +53,7 @@ class GameClientSocket():
             v = self.s.recv(1024)
             if(v != ""):
                 response= commands.clientprotokolparser(self.lastsentclientcommand, v)
+                response=str(response).replace("Char103","\n")
                 print(response)
             else:
                 self.s.close()

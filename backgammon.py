@@ -9,9 +9,9 @@ class Match(object):
     "A backgammon match"
     def __init__(self,player1,player2):
         self.id = uuid.uuid4()
-        self.state = "Started"
-        self.players = [player1, player2]
-        self.games = []
+        self.state = "Starting"
+        self._players = [player1, player2]
+        self._games = []
     def report(self):
         "Generate lines describing the match"
         yield 'Match to %d' % self.length
@@ -20,13 +20,16 @@ class Match(object):
             for line in g.report():
                 yield line
     @property
+    def players(self):
+        return list(self._players)
+    @property
     def games(self):
-        return list(self.games)
+        return list(self._games)
     def __iter__(self):
-        for g in self.games:
+        for g in self._games:
             yield g
     def addGame(self,game):
-        self.games.append(game)
+        self._games.append(game)
 
 class Game(object):
     "A single game of backgammon."
@@ -89,7 +92,6 @@ class GameMove(object):
         return 'Erroneous move type %s' % type(self)
     def apply(self, game_state):
         game_state.dice = None
-        #game_state.offer = None
     @property
     def action(self):
         "A short version of the type (eg 'roll')"

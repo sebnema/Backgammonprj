@@ -14,5 +14,10 @@ class User:
         self.activematchid = matchid
         self.socket = socket
         self.state=state
-
+    @property
+    def activematchid(self):
+        return self.activematchid
+    @property
+    def state(self):
+        return self.state
 
