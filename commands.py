@@ -42,6 +42,11 @@ def clientprotokolparser(sentcommand, data):
             response = valobj['board']
         elif (retcommand == "SRVERR"):
             response = valobj['message']
+    elif (sentcommand == "PCTHROWDICE"):
+        if (retcommand == "SRVOK"):
+            response = valobj['dice']
+        elif (retcommand == "SRVERR"):
+            response = valobj['message']
     else:
         response = "Something went wrong on server"
 
@@ -68,10 +73,15 @@ def processcommand(csocket, manager, data):
         username = valobj['username']
         response = pcreqplay(csocket, manager, username)
     elif (command == "PCPLAY"):
-        #parsing PCPLAY {"username": "Joe", "matchid": "saasdasd"}
+        #parsing PCPLAY {"username": "Joe", "matchid": "123123"}
         username = valobj['username']
         matchid = valobj['matchid']
         response = pcplay(csocket, manager, username, matchid)
+    elif (command == "PCTHROWDICE"):
+        #parsing PCTHROWDICE {"username": "Joe", "gameid": "123123"}
+        username = valobj['username']
+        gameid = valobj['gameid']
+        response = pcthrowdice(csocket, manager, username, gameid)
     else:
         response = "ERR"
     return response
@@ -142,7 +152,7 @@ def pcplay(csocket,manager,username, matchid):
         response = 'SRVOK||{"gameid":"'+str(gameid)+'", "board": "'+ str(board)+'"}'
     return response
 
-def pcthrowdice(manager, username, gameid):
+def pcthrowdice(csocket, manager, username, gameid):
     print("PCTHROWDICE command sent")
     dice_1 = random.randrange(1,6)
     dice_2 = random.randrange(1,6)

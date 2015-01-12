@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="afe9bda9-2ffc-4b17-918e-2db2c6deb40f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/backgammon.py" afterPath="$PROJECT_DIR$/backgammon.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Docs/RFC2_Technical Specifications for SWE544 Backgammon Project Protocol_BACKGAMMON Protocol v3.0.docx" afterPath="$PROJECT_DIR$/Docs/RFC2_Technical Specifications for SWE544 Backgammon Project Protocol_BACKGAMMON Protocol v3.0.docx" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/commands.py" afterPath="$PROJECT_DIR$/commands.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gameclientsocket.py" afterPath="$PROJECT_DIR$/gameclientsocket.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gamemanager.py" afterPath="$PROJECT_DIR$/gamemanager.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gamesocketthread.py" afterPath="$PROJECT_DIR$/gamesocketthread.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/user.py" afterPath="$PROJECT_DIR$/user.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="Backgammonprj.iws" />
@@ -54,11 +50,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="gameclientsocket.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="gameclientsocket.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gameclientsocket.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.3640898" vertical-offset="755" max-vertical-offset="1156">
-              <caret line="53" column="24" selection-start-line="53" selection-start-column="24" selection-end-line="53" selection-end-column="24" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="755" max-vertical-offset="1156">
+              <caret line="56" column="31" selection-start-line="56" selection-start-column="31" selection-end-line="56" selection-end-column="31" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -112,11 +108,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="commands.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="commands.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/commands.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-4.8076925" vertical-offset="555" max-vertical-offset="3230">
-              <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
+            <state vertical-scroll-proportion="3.0506666" vertical-offset="199" max-vertical-offset="3400">
+              <caret line="79" column="36" selection-start-line="79" selection-start-column="36" selection-end-line="79" selection-end-column="36" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -146,8 +142,8 @@
         <option value="$PROJECT_DIR$/gamemanager.py" />
         <option value="$PROJECT_DIR$/backgammon.py" />
         <option value="$PROJECT_DIR$/gamesocketthread.py" />
-        <option value="$PROJECT_DIR$/commands.py" />
         <option value="$PROJECT_DIR$/gameclientsocket.py" />
+        <option value="$PROJECT_DIR$/commands.py" />
       </list>
     </option>
   </component>
@@ -209,6 +205,20 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="Backgammonprj" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Backgammonprj" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Backgammonprj" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Docs" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -604,7 +614,19 @@
       <option name="project" value="LOCAL" />
       <updated>1421017937001</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="v3">
+      <created>1421026708727</created>
+      <option name="number" value="00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1421026708727</updated>
+    </task>
+    <task id="LOCAL-00018" summary="v3">
+      <created>1421027082044</created>
+      <option name="number" value="00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1421027082044</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -703,12 +725,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="python-line">
           <url>file://$PROJECT_DIR$/commands.py</url>
-          <line>138</line>
+          <line>148</line>
           <option name="timeStamp" value="157" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="python-line">
           <url>file://$PROJECT_DIR$/commands.py</url>
-          <line>69</line>
+          <line>74</line>
           <option name="timeStamp" value="162" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="python-line">
@@ -1082,22 +1104,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/commands.py">
+    <entry file="file://$PROJECT_DIR$/gameclientsocket.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.8076925" vertical-offset="555" max-vertical-offset="3230">
-          <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="755" max-vertical-offset="1156">
+          <caret line="56" column="31" selection-start-line="56" selection-start-column="31" selection-end-line="56" selection-end-column="31" />
           <folding>
-            <element signature="e#0#11#0" expanded="true" />
+            <element signature="e#0#13#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gameclientsocket.py">
+    <entry file="file://$PROJECT_DIR$/commands.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3640898" vertical-offset="755" max-vertical-offset="1156">
-          <caret line="53" column="24" selection-start-line="53" selection-start-column="24" selection-end-line="53" selection-end-column="24" />
+        <state vertical-scroll-proportion="3.0506666" vertical-offset="199" max-vertical-offset="3400">
+          <caret line="79" column="36" selection-start-line="79" selection-start-column="36" selection-end-line="79" selection-end-column="36" />
           <folding>
-            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>
