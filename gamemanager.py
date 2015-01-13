@@ -63,31 +63,29 @@ class GameManager(object):
                 break
         return 0
 
-    def createNewGame(self, match):
-        moves=[]
-        game = backgammon.Game(moves) # TODO
-        #all_moves = [
-            # '24/21 24/23', '24/20', '24/21 8/7', '24/21 6/5',
-            # '24/23 13/10', '24/23 8/5', '24/23 6/3',
-            # '13/9', '13/10 8/7', '13/10 6/5',
-            # '8/5 8/7', '8/4', '8/5 6/5',
-            # '8/7 6/3',
-            # '6/3 6/5', '6/2'
-            # ]
-        match.games.append(game)
-        match.state = "Playing"
-        return game
-
     def move(self,pfrom,pto):
         board = backgammon.Board.from_points((pfrom, pto))
         return board
 
     def getInitialGameBoard(self,matchid):
         match = self.getMatchById(matchid)
+        gameid = 0
         if(match>0):
-            game = self.createNewGame(match)
-            board = backgammon.initialPosition
-            return game.game_number,board
+            if (match.currentgameid >0):
+                game = self.getGameById(match.currentgameid)
+
+                gameid=game.game_number
+            else:
+                game = backgammon.Game()
+                match.games.append(game)
+                gameid=game.game_number
+
+        if (game>0):
+            match.currentgameid = game.game_number
+            match.state = "Playing"
+            board = game.state.board
+
+            return gameid,board
         return 0,0
 
     def getActiveMatches(self):
@@ -111,3 +109,50 @@ class GameManager(object):
                     if (player2.username == username):
                         return m,player1
         return 0,0
+
+
+    def setDice(self,player, gameid, d1,d2):
+        game = self.getGameById(gameid)
+        if (game>0):
+            rollactivity=backgammon.GameActivityRoll(player,d1,d2)
+            if isinstance(game,backgammon.Game):
+                game.moves.append(rollactivity)
+                game.dice = rollactivity.dice
+                return 1
+        return 0
+
+    def getGameById(self,gameid):
+        amatches = self.getActiveMatches()
+        for m in amatches:
+            if isinstance(m,backgammon.Match):
+                for g in m.games:
+                    if isinstance(g,backgammon.Game):
+                        if (str(g.game_number) == str(gameid)):
+                            return g
+        return 0
+
+    def getUsersByGameId(self, gameid):
+        users=[]
+        match = 0
+        amatches = self.getActiveMatches()
+        for m in amatches:
+            if isinstance(m,backgammon.Match):
+                for g in m.games:
+                    if isinstance(g,backgammon.Game):
+                        if (str(g.game_number) == str(gameid)):
+                            match = m
+
+        if isinstance(match,backgammon.Match):
+            users = match.players + match.watchers
+            return users
+        return 0
+
+    def sendMove(self,username,gameid,move):
+         game = self.getGameById(gameid)
+         moveobj = backgammon.Move(game.state.board,move)
+         gameactivitymove=backgammon.GameActivityMove(username,moveobj)
+         gameactivitymove.apply(game.state)
+         game.moves.append(gameactivitymove)
+         return game.state.board
+
+

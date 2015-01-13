@@ -33,28 +33,36 @@ def clientprotokolparser(sentcommand, data):
             response = valobj['message']
     elif (sentcommand == "PCREQPLAY"):
         if (retcommand == "SRVOK"):
-            #response = '{"message": "'+valobj['message']+'", "opponent": "'+valobj['opponent']+'", "matchid": "'+valobj['matchid']+'"}'
             response = 'Your opponent is ' + valobj['opponent'] + '.You are ready to start playing. pcplay ' + str(valobj['matchid']) + ''
         elif (retcommand == "SRVERR"):
             response = valobj['message']
     elif (sentcommand == "PCPLAY"):
         if (retcommand == "SRVOK"):
-            response = valobj['board']
+            response = valobj['board'] +"\n" + "You can start throw dice -> pcthrowdice " + valobj["gameid"]
         elif (retcommand == "SRVERR"):
             response = valobj['message']
     elif (sentcommand == "PCTHROWDICE"):
         if (retcommand == "SRVOK"):
-            response = valobj['dice']
+            response = 'Dice is ' + valobj['dice'] + ". Send move -> pcsendmove " +valobj["gameid"]+ " " + valobj['dice'] + ":move1 move2"
+        elif (retcommand == "SRVERR"):
+            response = valobj['message']
+    elif (sentcommand == "PCSENDMOVE"):
+        if (retcommand == "SRVOK"):
+            response = valobj['board'] +"\n" + "You can send wrong move alert -> pcwrongmovealert " + valobj["gameid"]
         elif (retcommand == "SRVERR"):
             response = valobj['message']
     else:
         response = "Something went wrong on server"
 
+    response=str(response).replace("Char103","\n")
     return response
 
 def processcommand(csocket, manager, data):
     #get command and parameters(If exists)
-    input = data.split("|")
+    users=[]
+    val=""
+    command=""
+    input = data.split("||")
     if(len(input)>0):
         command = input[0]
     if(len(input)>1):
@@ -82,11 +90,17 @@ def processcommand(csocket, manager, data):
         username = valobj['username']
         gameid = valobj['gameid']
         response = pcthrowdice(csocket, manager, username, gameid)
+        users = srvackusers(csocket, manager, username, gameid, response)
+    elif (command == "PCSENDMOVE"):
+        #parsing PCSENDMOVE {"username": "Joe", "gameid": "123123", "move": "12:4/3 3/1"}
+        username = valobj['username']
+        gameid = valobj['gameid']
+        move = valobj['move']
+        response = pcsendmove(csocket, manager, username, gameid, move)
+        users = srvackusers(csocket, manager, username, gameid, response)
     else:
         response = "ERR"
-    return response
-
-
+    return response, users
 
 def pcconn(csocket, manager, username, ip, serverip, serverport):
     print("PCCONN command received")
@@ -156,39 +170,43 @@ def pcthrowdice(csocket, manager, username, gameid):
     print("PCTHROWDICE command sent")
     dice_1 = random.randrange(1,6)
     dice_2 = random.randrange(1,6)
-    dice = dice_1 +""+ dice_2
-    response = response = 'SRVOK||{"message": "Successful", "dice": "'+str(dice)+'", "gameid": "'+str(gameid)+'" }'
+    dice = str(dice_1) + ""+ str(dice_2)
+    ret = manager.setDice(username, gameid, dice_1, dice_2)
+    if (ret):
+        response = 'SRVOK||{"message": "Successful", "dice": "'+str(dice)+'", "gameid": "'+str(gameid)+'" }'
+    else:
+        response = 'SRVERR||{"message": "Error occured while getting dice"}'
+    return response
 
-def pcsendmove(username, ip, gameid, move):
+def srvackusers(csocket, manager, username, gameid, response):
+    print("Acknowledment sent to players and watchers when PCTHROWDICE or PCSENDMOVE command received")
+    users=manager.getUsersByGameId(gameid)
+    return users
+
+def pcsendmove(csocket, manager, username, gameid, move): #TODO be tested
     print("PCSENDMOVE command received")
+    board= manager.sendMove(username, gameid, move)
+    if (board):
+        response = 'SRVOK||{"message": "Successful", "move": "'+str(move)+'", "gameid": "'+str(gameid)+'", "board": "'+ board+'" }'
+    else:
+        response = 'SRERR||{"message": "Error occured while sending move"}'
+    return response
 
-def pcwrongmovealert(username, ip, gameid):
+def pcwrongmovealert(csocket, manager, username, gameid):
     print("PCWRONGMOVEALERT command received")
-
-
-def pcreqwatch(username, ip, gameid):
-    print("PCREQWATCH command received")
-
-def pcwatch(username, ip, gameid):
-    print("PCWATCH command received")
-
-def pcbearoff(username, ip, gameid, move):
-    print("PCBEAROFF command received")
-
-def pcbearoff(username, ip, gameid, move):
-    print("PCBEAROFF command received")
-
-def pcend(username, ip):
-    print("PCEND command received")
-
-def srvhbeat(username, opponent):
-    print("SRVHBEAT  command received")
-
-def srvackdice(gameid,player,dice):
-    print("SRVACKDICE command sent")
-
-def srvackmove(gameid,player,playerip,gameboard):
-    print("SRVACKMOVE command sent")
 
 def srvackwrongmove(username,ip,gameid,previousgameboard):
     print("SRVACKWRONGMOVE command sent")
+
+def pcreqwatch(csocket, manager, username, gameid):
+    print("PCREQWATCH command received")
+
+def pcwatch(csocket, manager, username, gameid):
+    print("PCWATCH command received")
+
+def srvhbeat(csocket, manager):
+    print("SRVHBEAT  command sent")
+
+
+
+

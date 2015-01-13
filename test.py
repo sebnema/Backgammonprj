@@ -11,6 +11,11 @@ class User():
 
 
 if __name__ == "__main__":
+
+    listone = [1,2,3]
+    listtwo = [4,5,6]
+    mergedlist = listone + listtwo
+
     user1 = User("serbs","sss",334)
     user2 = User("serbs","sss")
 
