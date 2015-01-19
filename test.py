@@ -1,5 +1,7 @@
 import json
 import Queue
+import backgammon as bg
+from enumerate import enumerate_moves
 
 class User():
     def __init__(self, username, ip, gameid=-1):
@@ -8,9 +10,57 @@ class User():
         self.gameid=gameid
 
 
+def enumerate_move1(board, d, at_most=25):
+    """Generate all legal moves for a single dieroll. at_most limits
+    the highest move considered. The function yields (from, to), board
+    where from and to are the points moved from and to, and board is
+    the final board position."""
+    bearing_off = all(board[i] <= 0 for i in xrange(7, 26))
+    for p in xrange(at_most, 0, -1):
+        # Men on bar: don't allow any move that's not from the bar
+        if p < 25 and board[25] > 0: break
+        # No men on this point: don't allow move
+        if board[p] <= 0: continue
+        # Don't allow a move onto a point where opponent has men
+        if p - d > 0 and board[p - d] < -1: continue
+        # Moving off exactly; only allowed if no men above 6 point.
+        if p - d == 0 and not bearing_off: continue
+        # Moving off inexactly: only allowed if bearing off, and no men
+        # above our point.
+        if p - d < 0 and not bearing_off: continue
+        if p - d < 0 and any(board[i] > 0 for i in xrange(p + 1, 7)):
+            continue
+        # Make a board for the new position
+        b_ret = list(board)
+        # Remove the moved man
+        b_ret[p] -= 1
+        # Add the moved man to its new square (unless it's bearing off)
+        if p - d > 0:
+            # Deal with hit first
+            if b_ret[p - d] == -1:
+                # We've hit: move the hit man to the bar
+                b_ret[p - d], b_ret[0] = 0, b_ret[0] - 1
+            b_ret[p - d] += 1
+        yield (p, max(0, p - d)), b_ret
 
+def testOptionalHit():
+    "Check optional hit is reported with and without hit."
+    board = bg.Board.from_points((6, 1), (5, -1))
+    moves = ['6/5*/3', '6/3']
+    dice0 = 2
+    dice1 = 1
+
+    for d0, d1 in ((dice0, dice1), (dice1, dice0)):
+        for ft0, b0 in enumerate_move1(board, d0):
+            for ft1, b1 in enumerate_move1(b0, d1, ft0[0]):
+                b1 = tuple(b1)
+                #if b1 not in enumerate.found_boards:
+                #    enumerate.found_boards.add(b1)
+                #    yield bg.Move(board, ft0, ft1), bg.Board(b1)
 
 if __name__ == "__main__":
+
+    moves2 = testOptionalHit()
 
     listone = [1,2,3]
     listtwo = [4,5,6]

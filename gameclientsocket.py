@@ -35,10 +35,12 @@ class GameClientSocket():
             ret ='{"username": "' + self.username + '", "gameid": "'+ str(gameid)+'"}'
         elif (input.lower().__contains__("pcsendmove")):
             self.lastsentclientcommand = "PCSENDMOVE"
-            #PCTHROWDICE 123123123 12:4/2 4/3
+            #PCSENDMOVE 123123123 12 4/2 4/3
             gameid = cmd[1]
-            move = cmd[2]
-            ret ='{"username": "' + self.username + '", "gameid": "'+ str(gameid)+'", "move":"' + str(move) + '" }'
+            dice = cmd[2]
+            move1 = cmd[3]
+            move2 = cmd[4]
+            ret ='{"username": "' + self.username + '", "gameid": "'+ str(gameid)+'", "dice":"' + str(dice) + '", "move":"' + str(move1) + ' ' + str(move2) +'"  }'
         else:
             ret = "Invalid command"
         return ret
@@ -55,7 +57,6 @@ class GameClientSocket():
 
     def run(self):
         while True:
-
             input = raw_input("$ ")
 
             ret = self.parseInput(input)

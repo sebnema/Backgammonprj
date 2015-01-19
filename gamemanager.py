@@ -147,9 +147,9 @@ class GameManager(object):
             return users
         return 0
 
-    def sendMove(self,username,gameid,move):
+    def sendMove(self,username,gameid,dice, move):
          game = self.getGameById(gameid)
-         moveobj = backgammon.Move(game.state.board,move)
+         moveobj = backgammon.Move.from_string(game.state.board,move)
          gameactivitymove=backgammon.GameActivityMove(username,moveobj)
          gameactivitymove.apply(game.state)
          game.moves.append(gameactivitymove)

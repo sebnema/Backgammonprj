@@ -43,7 +43,7 @@ def clientprotokolparser(sentcommand, data):
             response = valobj['message']
     elif (sentcommand == "PCTHROWDICE"):
         if (retcommand == "SRVOK"):
-            response = 'Dice is ' + valobj['dice'] + ". Send move -> pcsendmove " +valobj["gameid"]+ " " + valobj['dice'] + ":move1 move2"
+            response = 'Dice is ' + valobj['dice'] + ". Send move -> pcsendmove " +valobj["gameid"]+ " " + valobj['dice'] + ": move1 move2"
         elif (retcommand == "SRVERR"):
             response = valobj['message']
     elif (sentcommand == "PCSENDMOVE"):
@@ -92,11 +92,12 @@ def processcommand(csocket, manager, data):
         response = pcthrowdice(csocket, manager, username, gameid)
         users = srvackusers(csocket, manager, username, gameid, response)
     elif (command == "PCSENDMOVE"):
-        #parsing PCSENDMOVE {"username": "Joe", "gameid": "123123", "move": "12:4/3 3/1"}
+        #parsing PCSENDMOVE {"username": "Joe", "gameid": "123123", "move": "12: 4/3 3/1"}
         username = valobj['username']
         gameid = valobj['gameid']
+        dice= valobj['dice']
         move = valobj['move']
-        response = pcsendmove(csocket, manager, username, gameid, move)
+        response = pcsendmove(csocket, manager, username, gameid, dice, move)
         users = srvackusers(csocket, manager, username, gameid, response)
     else:
         response = "ERR"
@@ -183,11 +184,11 @@ def srvackusers(csocket, manager, username, gameid, response):
     users=manager.getUsersByGameId(gameid)
     return users
 
-def pcsendmove(csocket, manager, username, gameid, move): #TODO be tested
+def pcsendmove(csocket, manager, username, gameid, dice, move):
     print("PCSENDMOVE command received")
-    board= manager.sendMove(username, gameid, move)
+    board= manager.sendMove(username, gameid, dice, move)
     if (board):
-        response = 'SRVOK||{"message": "Successful", "move": "'+str(move)+'", "gameid": "'+str(gameid)+'", "board": "'+ board+'" }'
+        response = 'SRVOK||{"message": "Successful", "move": "'+str(move)+'", "gameid": "'+str(gameid)+'", "board": "'+ str(board)+'" }'
     else:
         response = 'SRERR||{"message": "Error occured while sending move"}'
     return response

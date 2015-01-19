@@ -77,9 +77,9 @@ class Move(object):
     # (c) Copyright 2008 Paul Hankin. All Rights Reserved.
     """An object representing a move. Constructed from a board and a
     list of basic movements, it's converted lazily to a user-readable string
-    in normal backgammon notation."""
+    in normal backgammon notation. Eg. 21: 13/11 11/10"""
     def __init__(self, board, *from_to):
-        assert all(len(m) == 2 for m in from_to)
+        #assert all(len(m) == 2 for m in from_to)
         self._board = board
         self._from_to = from_to
     move_mult = re.compile(r'^(.*?)(\((\d)\))?$')
@@ -120,7 +120,7 @@ class Move(object):
         """Parse moves of the form 'a[/b\\*?]*/c\\*?(\(n\))'
         where a, b, c are 1..24 or bar or off. Each move is separated
         by spaces. Returns a Move object."""
-        assert cls.move_valid.match(move), "%s is not valid" % move
+        #assert cls.move_valid.match(move), "%s is not valid" % move
         moves = move.split()
         fts = []
         for m in moves:
