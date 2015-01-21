@@ -38,12 +38,12 @@ def clientprotokolparser(sentcommand, data):
             response = valobj['message']
     elif (sentcommand == "PCPLAY"):
         if (retcommand == "SRVOK"):
-            response = valobj['board'] +"\n" + "You can start throw dice -> pcthrowdice " + valobj["gameid"]
+            response = "You can start throw dice -> pcthrowdice " + valobj["gameid"]
         elif (retcommand == "SRVERR"):
             response = valobj['message']
     elif (sentcommand == "PCTHROWDICE"):
         if (retcommand == "SRVOK"):
-            response = 'Dice is ' + valobj['dice'] + ". Send move -> pcsendmove " +valobj["gameid"]+ " " + valobj['dice'] + ": move1 move2"
+            response = valobj['board'] +"\n" + 'Dice is ' + valobj['dice'] + ". Send move -> pcsendmove " +valobj["gameid"]+ " " + valobj['dice'] + " move1 move2"
         elif (retcommand == "SRVERR"):
             response = valobj['message']
     elif (sentcommand == "PCSENDMOVE"):
@@ -92,7 +92,7 @@ def processcommand(csocket, manager, data):
         response = pcthrowdice(csocket, manager, username, gameid)
         users = srvackusers(csocket, manager, username, gameid, response)
     elif (command == "PCSENDMOVE"):
-        #parsing PCSENDMOVE {"username": "Joe", "gameid": "123123", "move": "12: 4/3 3/1"}
+        #parsing PCSENDMOVE {"username": "Joe", "gameid": "123123", "dice": "12", "move": "4/3 3/1"}
         username = valobj['username']
         gameid = valobj['gameid']
         dice= valobj['dice']
@@ -172,9 +172,9 @@ def pcthrowdice(csocket, manager, username, gameid):
     dice_1 = random.randrange(1,6)
     dice_2 = random.randrange(1,6)
     dice = str(dice_1) + ""+ str(dice_2)
-    ret = manager.setDice(username, gameid, dice_1, dice_2)
-    if (ret):
-        response = 'SRVOK||{"message": "Successful", "dice": "'+str(dice)+'", "gameid": "'+str(gameid)+'" }'
+    board = manager.setDice(username, gameid, dice_1, dice_2)
+    if (board>0):
+        response = 'SRVOK||{"message": "Successful", "dice": "'+str(dice)+'", "gameid": "'+str(gameid)+'", "board": "'+ str(board)+'" }'
     else:
         response = 'SRVERR||{"message": "Error occured while getting dice"}'
     return response

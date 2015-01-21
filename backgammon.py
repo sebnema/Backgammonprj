@@ -35,7 +35,7 @@ class Game(object):
 class GameState(object):
     "The state of a game being played."
     def __init__(self):
-        self.board = initialPosition
+        self.board = initialPosition.reverse()
         self.dice = None
     _keys = ['board', 'dice']
     @property
@@ -58,6 +58,9 @@ class GameActivityRoll(GameActivity):
         return 'rolls %d%d' % self.dice
     def apply(self, game_state):
         game_state.dice = self.dice
+        if self.player:
+            game_state.board = game_state.board.reverse()
+
 
 class GameActivityMove(GameActivity):
     "A player moves some stones."
@@ -207,6 +210,8 @@ class Move(object):
 
 class Board(tuple):
     # (c) Copyright 2008 Paul Hankin. All Rights Reserved.
+    isreversed = False
+
     @property
     def pipcounts(board):
         "Return pipcounts for both players"
@@ -289,10 +294,10 @@ class Board(tuple):
     def reverse(self):
         """Swap the board round, producing board from other player's
         perspective"""
-        return Board(-i for i in reversed(self))
+        return Board((-i for i in reversed(self)))
 
     def __str__(self):
-        return graphics.toString_ascii(self, False)
+        return graphics.toString_ascii(self,True)
 
 def all_rolls():
     "Generate all rolls, larger first"

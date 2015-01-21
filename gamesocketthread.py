@@ -21,10 +21,10 @@ class GameSocketThread(threading.Thread):
         print ("BG> Received connection ", self.details [ 0 ])
         #self.handshake(self.channel)
         while True:
-            #try:
+            try:
                 self.interact(self.channel)
-            #except Exception, err:
-             #   sys.stderr.write('ERROR: %s\n' % str(err))
+            except Exception, err:
+                sys.stderr.write('ERROR: %s\n' % str(err))
               #  self.channel.close()
                # break
 
@@ -46,13 +46,13 @@ class GameSocketThread(threading.Thread):
         print "Got data: ", data
         response, users= Commands.processcommand(client, self.manager, data) #this_user.socket
         self.lastsentservercomand = response.split("||")[0]
-        if (len(users)>0):
-            for u in users:
-                if isinstance(u,user.User):
-                    self.send_data(u.socket, response)
-        else:
-            self.send_data(client, response)
-
+        #if (len(users)>0):
+        #    for u in users:
+        #        if isinstance(u,user.User):
+        #            self.send_data(u.socket, response)
+        #else:
+        #    self.send_data(client, response)
+        self.send_data(client, response)
 
 
 

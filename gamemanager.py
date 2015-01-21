@@ -118,7 +118,8 @@ class GameManager(object):
             if isinstance(game,backgammon.Game):
                 game.moves.append(rollactivity)
                 game.dice = rollactivity.dice
-                return 1
+                rollactivity.apply(game.state)
+                return game.state.board
         return 0
 
     def getGameById(self,gameid):
@@ -149,6 +150,7 @@ class GameManager(object):
 
     def sendMove(self,username,gameid,dice, move):
          game = self.getGameById(gameid)
+
          moveobj = backgammon.Move.from_string(game.state.board,move)
          gameactivitymove=backgammon.GameActivityMove(username,moveobj)
          gameactivitymove.apply(game.state)
