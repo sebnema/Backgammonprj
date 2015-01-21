@@ -73,8 +73,8 @@ class GameActivityMove(GameActivity):
     def apply(self, game_state):
         game_state.dice = None
         game_state.board = self.move.board_after
-        if self.player:
-            game_state.board = game_state.board.reverse()
+        #if self.player:
+        #    game_state.board = game_state.board.reverse()
 
 class Move(object):
     # (c) Copyright 2008 Paul Hankin. All Rights Reserved.
@@ -297,7 +297,7 @@ class Board(tuple):
         return Board((-i for i in reversed(self)))
 
     def __str__(self):
-        return graphics.toString_ascii(self,True)
+        return graphics.toString_ascii(self,False)
 
 def all_rolls():
     "Generate all rolls, larger first"
